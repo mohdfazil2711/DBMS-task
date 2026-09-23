@@ -1,0 +1,33 @@
+# DBMS-task
+Introduction
+
+The E-Commerce Order Management System is a database-based system developed to manage the major activities of an online shopping platform. It stores and manages information about customers, products, sellers, inventory, orders, payments, reviews, and ratings. The main purpose of the system is to organize e-commerce data efficiently, reduce manual work, maintain data accuracy, and provide quick access to important information.
+
+Functional Requirements
+
+The functional requirements describe the operations that the system must perform.
+
+Customer Management – Add, update, delete, and retrieve customer information such as name, email, phone number, and address.
+Product Management – Add, update, delete, and search product details including product name, price, category, and stock.
+Category Management – Create and manage product categories and generate category-wise product information.
+Seller Management – Store seller details and maintain the relationship between sellers and their products.
+Inventory Management – Track product stock and identify available or unavailable products.
+Order Management – Create orders, store order details, quantities, dates, and total amounts.
+Payment Management – Record payment mode, payment date, and payment status.
+Review and Rating Management – Store customer feedback and ratings and calculate average product ratings.
+Report Generation – Generate basic reports related to customers, products, orders, inventory, payments, and reviews.
+Non-Functional Requirements
+
+The non-functional requirements describe the quality and performance expected from the system.
+
+Performance – The system should retrieve and process data quickly.
+Security – Customer and payment-related information should be protected from unauthorized access.
+Reliability – The system should provide accurate and consistent results.
+Data Integrity – Primary keys, foreign keys, and constraints should maintain correct relationships between tables.
+Scalability – The system should be capable of handling increasing numbers of customers, products, and orders.
+Usability – The system should be simple and easy to use.
+Maintainability – The database should be easy to update, manage, and maintain.
+Availability – The system should be available whenever users need to access or manage e-commerce information.
+Conclusion
+
+The E-Commerce Order Management System provides an organized way to manage the complete e-commerce process. By maintaining customer, product, seller, inventory, order, payment, and review information in a structured database, the system improves data accuracy and efficiency. The requirement analysis provides a clear foundation for developing the remaining modules of the system.
