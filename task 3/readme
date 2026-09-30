@@ -1,0 +1,125 @@
+USE ecommerce_order_management;
+
+DROP TABLE IF EXISTS inventory;
+DROP TABLE IF EXISTS sellers;
+
+CREATE TABLE sellers (
+    seller_id INT AUTO_INCREMENT PRIMARY KEY,
+    seller_name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE,
+    phone VARCHAR(15),
+    address VARCHAR(255)
+);
+
+CREATE TABLE inventory (
+    inventory_id INT AUTO_INCREMENT PRIMARY KEY,
+    seller_id INT NOT NULL,
+    product_id INT NOT NULL,
+    stock_quantity INT NOT NULL,
+    availability_status VARCHAR(20) NOT NULL,
+    last_updated DATE,
+    FOREIGN KEY (seller_id) REFERENCES sellers(seller_id),
+    FOREIGN KEY (product_id) REFERENCES products(product_id)
+);
+
+INSERT INTO sellers
+(seller_name, email, phone, address)
+VALUES
+('ABC Electronics', 'abc@gmail.com', '9876543210', 'Chennai'),
+('Fashion World', 'fashion@gmail.com', '9876543211', 'Bangalore'),
+('Book House', 'bookhouse@gmail.com', '9876543212', 'Coimbatore'),
+('Home Needs', 'homeneeds@gmail.com', '9876543213', 'Madurai');
+
+SELECT seller_id, seller_name
+FROM sellers;
+
+SELECT product_id, product_name
+FROM products;
+
+INSERT INTO inventory
+(seller_id, product_id, stock_quantity, availability_status, last_updated)
+VALUES
+(1, 1, 8, 'Available', '2026-09-30'),
+(1, 2, 25, 'Available', '2026-09-30'),
+(2, 3, 50, 'Available', '2026-09-30'),
+(2, 4, 0, 'Unavailable', '2026-09-30'),
+(3, 5, 20, 'Available', '2026-09-30'),
+(3, 6, 0, 'Unavailable', '2026-09-30');
+
+UPDATE inventory
+SET stock_quantity = 15,
+    availability_status = 'Available',
+    last_updated = '2026-09-30'
+WHERE inventory_id = 1;
+
+UPDATE inventory
+SET stock_quantity = 0,
+    availability_status = 'Unavailable',
+    last_updated = '2026-09-30'
+WHERE inventory_id = 2;
+
+SELECT * FROM sellers;
+
+SELECT * FROM inventory;
+
+SELECT
+    s.seller_name,
+    p.product_name,
+    i.stock_quantity,
+    i.availability_status,
+    i.last_updated
+FROM sellers s
+JOIN inventory i
+    ON s.seller_id = i.seller_id
+JOIN products p
+    ON i.product_id = p.product_id
+ORDER BY s.seller_name;
+
+SELECT
+    p.product_name,
+    s.seller_name,
+    i.stock_quantity,
+    i.availability_status
+FROM inventory i
+JOIN products p
+    ON i.product_id = p.product_id
+JOIN sellers s
+    ON i.seller_id = s.seller_id
+WHERE i.availability_status = 'Available';
+
+SELECT
+    p.product_name,
+    s.seller_name,
+    i.stock_quantity,
+    i.availability_status
+FROM inventory i
+JOIN products p
+    ON i.product_id = p.product_id
+JOIN sellers s
+    ON i.seller_id = s.seller_id
+WHERE i.availability_status = 'Unavailable';
+
+SELECT
+    s.seller_name,
+    COUNT(i.inventory_id) AS total_products,
+    SUM(i.stock_quantity) AS total_stock
+FROM sellers s
+LEFT JOIN inventory i
+    ON s.seller_id = i.seller_id
+GROUP BY s.seller_id, s.seller_name;
+
+SELECT
+    availability_status,
+    COUNT(*) AS total_products,
+    SUM(stock_quantity) AS total_stock
+FROM inventory
+GROUP BY availability_status;
+
+SELECT
+    p.product_name,
+    SUM(i.stock_quantity) AS total_stock
+FROM inventory i
+JOIN products p
+    ON i.product_id = p.product_id
+GROUP BY p.product_id, p.product_name
+ORDER BY total_stock DESC;
