@@ -1,0 +1,276 @@
+USE ecommerce_order_management;
+
+-- 1. SELECT QUERIES
+
+SELECT * FROM products;
+
+SELECT * FROM categories;
+
+SELECT * FROM customers;
+
+SELECT * FROM orders;
+
+SELECT * FROM order_details;
+
+
+-- 2. WHERE QUERIES
+
+SELECT *
+FROM products
+WHERE price > 1000;
+
+SELECT *
+FROM products
+WHERE stock > 10;
+
+SELECT *
+FROM products
+WHERE price BETWEEN 500 AND 5000;
+
+SELECT *
+FROM products
+WHERE stock = 0;
+
+
+-- 3. ORDER BY QUERIES
+
+SELECT *
+FROM products
+ORDER BY price ASC;
+
+SELECT *
+FROM products
+ORDER BY price DESC;
+
+SELECT *
+FROM products
+ORDER BY stock DESC;
+
+
+-- 4. DISTINCT QUERIES
+
+SELECT DISTINCT category_id
+FROM products;
+
+SELECT DISTINCT payment_mode
+FROM payments;
+
+SELECT DISTINCT payment_status
+FROM payments;
+
+
+-- 5. SEARCH PRODUCTS BY PRICE
+
+SELECT
+    product_id,
+    product_name,
+    price,
+    stock
+FROM products
+WHERE price <= 1000;
+
+
+-- Products between Rs.500 and Rs.5000
+
+SELECT
+    product_id,
+    product_name,
+    price,
+    stock
+FROM products
+WHERE price BETWEEN 500 AND 5000;
+
+
+-- 6. SEARCH PRODUCTS BY CATEGORY
+
+SELECT
+    p.product_id,
+    p.product_name,
+    c.category_name,
+    p.price,
+    p.stock
+FROM products p
+JOIN categories c
+    ON p.category_id = c.category_id
+WHERE c.category_name = 'Electronics';
+
+
+-- 7. SEARCH AVAILABLE PRODUCTS
+
+SELECT
+    p.product_id,
+    p.product_name,
+    p.price,
+    p.stock
+FROM products p
+WHERE p.stock > 0;
+
+
+-- 8. SEARCH UNAVAILABLE PRODUCTS
+
+SELECT
+    p.product_id,
+    p.product_name,
+    p.price,
+    p.stock
+FROM products p
+WHERE p.stock = 0;
+
+
+-- 9. SEARCH PRODUCTS BY NAME
+
+SELECT *
+FROM products
+WHERE product_name LIKE '%Book%';
+
+
+-- 10. RETRIEVE CUSTOMER INFORMATION
+
+SELECT *
+FROM customers;
+
+SELECT
+    c.customer_id,
+    o.order_id,
+    o.order_date,
+    o.total_amount
+FROM customers c
+JOIN orders o
+    ON c.customer_id = o.customer_id
+ORDER BY c.customer_id;
+
+
+-- 11. RETRIEVE CUSTOMER ORDER DETAILS
+
+SELECT
+    c.customer_id,
+    o.order_id,
+    o.order_date,
+    p.product_name,
+    od.quantity,
+    od.unit_price,
+    od.subtotal
+FROM customers c
+JOIN orders o
+    ON c.customer_id = o.customer_id
+JOIN order_details od
+    ON o.order_id = od.order_id
+JOIN products p
+    ON od.product_id = p.product_id
+ORDER BY o.order_date;
+
+
+-- 12. FILTER PRODUCTS USING MULTIPLE CONDITIONS
+
+SELECT *
+FROM products
+WHERE price > 500
+AND stock > 0;
+
+
+SELECT *
+FROM products
+WHERE price < 5000
+AND stock >= 10;
+
+
+-- 13. OR CONDITION
+
+SELECT *
+FROM products
+WHERE price < 1000
+OR stock > 20;
+
+
+-- 14. NOT CONDITION
+
+SELECT *
+FROM products
+WHERE NOT stock = 0;
+
+
+-- 15. BASIC PRODUCT REPORT
+
+SELECT
+    COUNT(*) AS total_products,
+    SUM(stock) AS total_stock,
+    AVG(price) AS average_price,
+    MIN(price) AS minimum_price,
+    MAX(price) AS maximum_price
+FROM products;
+
+
+-- 16. CATEGORY-WISE PRODUCT REPORT
+
+SELECT
+    c.category_name,
+    COUNT(p.product_id) AS total_products,
+    SUM(p.stock) AS total_stock,
+    AVG(p.price) AS average_price
+FROM categories c
+LEFT JOIN products p
+    ON c.category_id = p.category_id
+GROUP BY c.category_id, c.category_name
+ORDER BY total_products DESC;
+
+
+-- 17. CUSTOMER ORDER REPORT
+
+SELECT
+    c.customer_id,
+    COUNT(o.order_id) AS total_orders,
+    SUM(o.total_amount) AS total_spent
+FROM customers c
+LEFT JOIN orders o
+    ON c.customer_id = o.customer_id
+GROUP BY c.customer_id
+ORDER BY total_spent DESC;
+
+
+-- 18. PAYMENT REPORT
+
+SELECT
+    payment_mode,
+    COUNT(*) AS total_transactions,
+    SUM(amount) AS total_amount
+FROM payments
+GROUP BY payment_mode
+ORDER BY total_amount DESC;
+
+
+-- 19. SUCCESSFUL PAYMENT REPORT
+
+SELECT
+    payment_mode,
+    COUNT(*) AS successful_transactions,
+    SUM(amount) AS successful_amount
+FROM payments
+WHERE payment_status = 'Successful'
+GROUP BY payment_mode
+ORDER BY successful_amount DESC;
+
+
+-- 20. PRODUCT RATING REPORT
+
+SELECT
+    p.product_name,
+    COUNT(r.rating_id) AS total_ratings,
+    AVG(r.rating) AS average_rating
+FROM products p
+JOIN ratings r
+    ON p.product_id = r.product_id
+GROUP BY p.product_id, p.product_name
+ORDER BY average_rating DESC;
+
+
+-- 21. HIGHLY RATED PRODUCTS
+
+SELECT
+    p.product_name,
+    AVG(r.rating) AS average_rating
+FROM products p
+JOIN ratings r
+    ON p.product_id = r.product_id
+GROUP BY p.product_id, p.product_name
+HAVING AVG(r.rating) >= 4
+ORDER BY average_rating DESC;
