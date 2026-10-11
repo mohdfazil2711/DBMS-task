@@ -1,0 +1,171 @@
+CREATE DATABASE IF NOT EXISTS AdvancedSQLSystem;
+USE AdvancedSQLSystem;
+
+DROP TABLE IF EXISTS Orders;
+DROP TABLE IF EXISTS Product;
+DROP TABLE IF EXISTS Customer;
+
+CREATE TABLE Customer (
+    Customer_ID INT PRIMARY KEY,
+    Customer_Name VARCHAR(100) NOT NULL,
+    Email VARCHAR(100),
+    City VARCHAR(50)
+);
+
+CREATE TABLE Product (
+    Product_ID INT PRIMARY KEY,
+    Product_Name VARCHAR(100) NOT NULL,
+    Category VARCHAR(50),
+    Price DECIMAL(10,2) NOT NULL
+);
+
+CREATE TABLE Orders (
+    Order_ID INT PRIMARY KEY,
+    Customer_ID INT,
+    Product_ID INT,
+    Quantity INT NOT NULL,
+    Order_Date DATE,
+    FOREIGN KEY (Customer_ID) REFERENCES Customer(Customer_ID),
+    FOREIGN KEY (Product_ID) REFERENCES Product(Product_ID)
+);
+
+INSERT INTO Customer VALUES
+(1, 'Arun', 'arun@gmail.com', 'Chennai'),
+(2, 'Bala', 'bala@gmail.com', 'Coimbatore'),
+(3, 'Kumar', 'kumar@gmail.com', 'Madurai'),
+(4, 'Priya', 'priya@gmail.com', 'Chennai'),
+(5, 'Divya', 'divya@gmail.com', 'Salem');
+
+INSERT INTO Product VALUES
+(101, 'Laptop', 'Electronics', 50000.00),
+(102, 'Mobile', 'Electronics', 20000.00),
+(103, 'Chair', 'Furniture', 5000.00),
+(104, 'Table', 'Furniture', 8000.00),
+(105, 'Headphones', 'Accessories', 2000.00);
+
+INSERT INTO Orders VALUES
+(1001, 1, 101, 1, '2026-01-10'),
+(1002, 2, 102, 2, '2026-01-12'),
+(1003, 1, 105, 3, '2026-01-15'),
+(1004, 3, 103, 2, '2026-02-01'),
+(1005, 4, 101, 1, '2026-02-05'),
+(1006, 5, 104, 2, '2026-02-10'),
+(1007, 2, 105, 5, '2026-02-15'),
+(1008, 3, 102, 1, '2026-03-01'),
+(1009, 4, 103, 3, '2026-03-05'),
+(1010, 1, 102, 1, '2026-03-10');
+
+-- 1. Subquery: Products Above Average Price
+SELECT Product_ID, Product_Name, Category, Price
+FROM Product
+WHERE Price > (
+    SELECT AVG(Price)
+    FROM Product
+);
+
+-- 2. Nested Query: Customers Who Purchased Products
+SELECT Customer_ID, Customer_Name
+FROM Customer
+WHERE Customer_ID IN (
+    SELECT Customer_ID
+    FROM Orders
+    WHERE Product_ID IN (
+        SELECT Product_ID
+        FROM Product
+        WHERE Price > 10000
+    )
+);
+
+-- 3. Identify Customer(s) With Maximum Purchase Amount
+SELECT C.Customer_ID, C.Customer_Name,
+       SUM(O.Quantity * P.Price) AS Total_Purchase
+FROM Customer C
+JOIN Orders O ON C.Customer_ID = O.Customer_ID
+JOIN Product P ON O.Product_ID = P.Product_ID
+GROUP BY C.Customer_ID, C.Customer_Name
+HAVING SUM(O.Quantity * P.Price) = (
+    SELECT MAX(Customer_Total)
+    FROM (
+        SELECT SUM(O2.Quantity * P2.Price) AS Customer_Total
+        FROM Orders O2
+        JOIN Product P2 ON O2.Product_ID = P2.Product_ID
+        GROUP BY O2.Customer_ID
+    ) AS PurchaseTotals
+);
+
+-- 4. Complex Business Query: Customer Purchase Report
+SELECT C.Customer_ID, C.Customer_Name, C.City,
+       COUNT(DISTINCT O.Order_ID) AS Total_Orders,
+       SUM(O.Quantity) AS Total_Quantity,
+       SUM(O.Quantity * P.Price) AS Total_Spending,
+       AVG(P.Price) AS Average_Product_Price
+FROM Customer C
+JOIN Orders O ON C.Customer_ID = O.Customer_ID
+JOIN Product P ON O.Product_ID = P.Product_ID
+GROUP BY C.Customer_ID, C.Customer_Name, C.City
+ORDER BY Total_Spending DESC;
+
+-- 5. Products With Sales Above Average Product Revenue
+SELECT P.Product_ID, P.Product_Name,
+       SUM(O.Quantity * P.Price) AS Total_Revenue
+FROM Product P
+JOIN Orders O ON P.Product_ID = O.Product_ID
+GROUP BY P.Product_ID, P.Product_Name
+HAVING SUM(O.Quantity * P.Price) > (
+    SELECT AVG(Product_Revenue)
+    FROM (
+        SELECT SUM(O2.Quantity * P2.Price) AS Product_Revenue
+        FROM Orders O2
+        JOIN Product P2 ON O2.Product_ID = P2.Product_ID
+        GROUP BY P2.Product_ID
+    ) AS RevenueTotals
+)
+ORDER BY Total_Revenue DESC;
+
+-- 6. Category-Wise Sales Analysis
+SELECT P.Category,
+       SUM(O.Quantity) AS Units_Sold,
+       SUM(O.Quantity * P.Price) AS Total_Revenue
+FROM Product P
+JOIN Orders O ON P.Product_ID = O.Product_ID
+GROUP BY P.Category
+ORDER BY Total_Revenue DESC;
+
+-- 7. Customers Who Spent More Than the Average Customer
+SELECT C.Customer_ID, C.Customer_Name,
+       SUM(O.Quantity * P.Price) AS Total_Spending
+FROM Customer C
+JOIN Orders O ON C.Customer_ID = O.Customer_ID
+JOIN Product P ON O.Product_ID = P.Product_ID
+GROUP BY C.Customer_ID, C.Customer_Name
+HAVING SUM(O.Quantity * P.Price) > (
+    SELECT AVG(Customer_Total)
+    FROM (
+        SELECT SUM(O2.Quantity * P2.Price) AS Customer_Total
+        FROM Orders O2
+        JOIN Product P2 ON O2.Product_ID = P2.Product_ID
+        GROUP BY O2.Customer_ID
+    ) AS CustomerTotals
+)
+ORDER BY Total_Spending DESC;
+
+-- 8. Products Never Purchased
+SELECT Product_ID, Product_Name, Price
+FROM Product
+WHERE Product_ID NOT IN (
+    SELECT Product_ID
+    FROM Orders
+);
+
+-- 9. Advanced SQL Report: Overall Business Summary
+SELECT
+    (SELECT COUNT(*) FROM Customer) AS Total_Customers,
+    (SELECT COUNT(*) FROM Product) AS Total_Products,
+    (SELECT COUNT(*) FROM Orders) AS Total_Order_Lines,
+    (SELECT SUM(Quantity) FROM Orders) AS Total_Units_Sold,
+    (SELECT SUM(O.Quantity * P.Price)
+     FROM Orders O
+     JOIN Product P ON O.Product_ID = P.Product_ID) AS Total_Revenue,
+    (SELECT AVG(Price) FROM Product) AS Average_Product_Price,
+    (SELECT MAX(Price) FROM Product) AS Highest_Product_Price,
+    (SELECT MIN(Price) FROM Product) AS Lowest_Product_Price;
